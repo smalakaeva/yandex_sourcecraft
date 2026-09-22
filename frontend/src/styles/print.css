@@ -1,0 +1,66 @@
+/* Печатная версия отчёта: window.print() -> «Сохранить как PDF».
+   Кириллица, векторный текст и ссылки сохраняются, внешние библиотеки не нужны. */
+@media print {
+  @page { size: A4; margin: 14mm 12mm; }
+
+  /* Печать всегда светлая: если пользователь смотрит сайт в тёмной теме,
+     токены нужно принудительно вернуть к светлым значениям, иначе в PDF
+     получится светлый текст на белом фоне. */
+  :root, :root[data-theme='dark'], :root[data-theme='light'] {
+    --surface: #ffffff;
+    --surface-2: #ffffff;
+    --surface-3: #f2f2f6;
+    --border: #d6d6de;
+    --border-strong: #b9b9c4;
+    --text: #101014;
+    --text-muted: #3f3f4a;
+    --text-subtle: #61616e;
+    --accent: #4b32c3;
+    --accent-soft: #eeeaff;
+    --good: #14724c;
+    --good-soft: #e6f5ee;
+    --warn: #8a5b00;
+    --warn-soft: #fbf1df;
+    --bad: #b3261e;
+    --bad-soft: #fbeae9;
+    --nodata: #55555f;
+    --nodata-soft: #f0f0f3;
+    --info: #14459e;
+    --info-soft: #e9f0ff;
+  }
+
+  html, body {
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 10.5pt;
+  }
+
+  .rail, .sidebar, .topbar, .footer, .no-print, .tabs, .pagination { display: none !important; }
+
+  /* Каркас с сайдбаром на печати схлопывается в одну колонку */
+  .shell { display: block !important; }
+  .main { display: block !important; }
+  .content { padding: 0 !important; max-width: none !important; }
+
+  .page { padding: 0 !important; }
+  .container { max-width: none !important; padding: 0 !important; }
+
+  .card, .rec, .metric, .category-card, .table-wrap {
+    border: 1px solid #d6d6de !important;
+    box-shadow: none !important;
+    background: #fff !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .print-only { display: block !important; }
+
+  h1, h2, h3 { break-after: avoid; page-break-after: avoid; }
+  a { color: #000 !important; text-decoration: underline; }
+  a[href^='http']::after { content: ' (' attr(href) ')'; font-size: 8pt; color: #555; }
+
+  .badge { border: 1px solid #b9b9c4 !important; color: #000 !important; background: #fff !important; }
+  .print-break { break-before: page; page-break-before: always; }
+}
+
+.print-only { display: none; }

@@ -1,0 +1,13 @@
+# зависимости и артефакты сборки
+node_modules/
+dist/
+*.tsbuildinfo
+
+# локальные настройки окружения
+.env
+.env.local
+.env.*.local
+
+# системное
+.DS_Store
+*.log
