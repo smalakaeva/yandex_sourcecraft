@@ -1,0 +1,1 @@
+{"repos_total": 1500, "repos_scored": 1337, "median_score": 39.8, "no_data_security": 1500, "with_ci": 334, "last_run_at": "2026-09-22T00:00:00+00:00", "next_run_at": "2026-09-22T03:00:00+00:00", "schedule": "0 3 * * *"}

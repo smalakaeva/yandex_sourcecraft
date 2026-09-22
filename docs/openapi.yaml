@@ -1,0 +1,456 @@
+openapi: 3.0.3
+info:
+  title: SourceCraft Repo Health API
+  version: 1.0.0
+  description: >
+    Контракт между веб-интерфейсом и бэкендом сервиса оценки здоровья репозиториев
+    SourceCraft. Подробные пояснения — в docs/api-contract.md.
+servers:
+  - url: /api/v1
+
+tags:
+  - name: rating
+  - name: repos
+  - name: auth
+  - name: analyses
+
+paths:
+  /repos:
+    get:
+      tags: [rating]
+      summary: Рейтинг открытых репозиториев
+      parameters:
+        - { in: query, name: query, schema: { type: string } }
+        - { in: query, name: language, schema: { type: string } }
+        - in: query
+          name: sort
+          schema: { type: string, enum: [score, likes, activity, name], default: score }
+        - in: query
+          name: order
+          schema: { type: string, enum: [asc, desc], default: desc }
+        - { in: query, name: page, schema: { type: integer, minimum: 1, default: 1 } }
+        - { in: query, name: page_size, schema: { type: integer, minimum: 1, maximum: 100, default: 25 } }
+        - { in: query, name: has_ci, schema: { type: boolean } }
+        - in: query
+          name: security_status
+          schema: { type: string, enum: [ok, partial, no_data, not_applicable] }
+        - in: query
+          name: min_coverage
+          description: Минимальная доля веса методики, покрытая данными
+          schema: { type: number, minimum: 0, maximum: 1 }
+      responses:
+        '200':
+          description: Страница рейтинга
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, total, page, page_size]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/RepoSummary' }
+                  total: { type: integer }
+                  page: { type: integer }
+                  page_size: { type: integer }
+
+  /repos/{owner}/{name}:
+    get:
+      tags: [repos]
+      summary: Полный отчёт по репозиторию
+      parameters:
+        - { in: path, name: owner, required: true, schema: { type: string } }
+        - { in: path, name: name, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: Отчёт
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RepoReport' }
+        '404': { $ref: '#/components/responses/Error' }
+
+  /repos/{owner}/{name}/report.{format}:
+    get:
+      tags: [repos]
+      summary: Выгрузка отчёта файлом (необязательный эндпоинт)
+      parameters:
+        - { in: path, name: owner, required: true, schema: { type: string } }
+        - { in: path, name: name, required: true, schema: { type: string } }
+        - in: path
+          name: format
+          required: true
+          schema: { type: string, enum: [md, pdf] }
+      responses:
+        '200':
+          description: Файл отчёта
+          content:
+            text/markdown: { schema: { type: string } }
+            application/pdf: { schema: { type: string, format: binary } }
+
+  /badge/{owner}/{name}.svg:
+    get:
+      tags: [repos]
+      summary: SVG-бейдж Repo Health Score для README
+      parameters:
+        - { in: path, name: owner, required: true, schema: { type: string } }
+        - { in: path, name: name, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: Бейдж
+          content:
+            image/svg+xml: { schema: { type: string } }
+
+  /languages:
+    get:
+      tags: [rating]
+      summary: Языки и число репозиториев для фильтра
+      responses:
+        '200':
+          description: Список языков
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    language: { type: string }
+                    count: { type: integer }
+
+  /stats:
+    get:
+      tags: [rating]
+      summary: Сводка по платформе и расписанию пересчёта
+      responses:
+        '200':
+          description: Статистика
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PlatformStats' }
+
+  /auth/yandex/login:
+    get:
+      tags: [auth]
+      summary: Старт авторизации через Я ID
+      parameters:
+        - in: query
+          name: redirect_uri
+          required: true
+          description: Адрес страницы /auth/callback фронтенда
+          schema: { type: string, format: uri }
+      responses:
+        '302': { description: Редирект на страницу согласия Яндекс ID }
+
+  /auth/logout:
+    post:
+      tags: [auth]
+      summary: Завершение сессии
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: Сессия завершена }
+
+  /me:
+    get:
+      tags: [auth]
+      summary: Профиль авторизованного пользователя
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Пользователь
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '401': { $ref: '#/components/responses/Error' }
+
+  /me/repos:
+    get:
+      tags: [auth]
+      summary: Репозитории, доступные пользователю
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Список репозиториев
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/OwnedRepo' }
+        '401': { $ref: '#/components/responses/Error' }
+
+  /analyses:
+    post:
+      tags: [analyses]
+      summary: Запуск анализа репозитория
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [repo_full_path]
+              properties:
+                repo_full_path: { type: string, example: userver/userver }
+      responses:
+        '202':
+          description: Анализ поставлен в очередь
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Analysis' }
+        '403': { $ref: '#/components/responses/Error' }
+        '429': { $ref: '#/components/responses/Error' }
+
+  /analyses/{id}:
+    get:
+      tags: [analyses]
+      summary: Статус и результат анализа
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: Состояние анализа
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Analysis' }
+        '404': { $ref: '#/components/responses/Error' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    Error:
+      description: Ошибка
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code: { type: string }
+              message: { type: string }
+
+  schemas:
+    CategoryKey:
+      type: string
+      enum: [security, code_health, activity, documentation, cicd, issues]
+
+    DataStatus:
+      type: string
+      enum: [ok, partial, no_data, not_applicable]
+      description: >
+        no_data — источник недоступен, категория исключается из Score;
+        not_applicable — сущности нет (например, трекер задач не используется).
+
+    Metric:
+      type: object
+      required: [key, label, value, display, status]
+      properties:
+        key: { type: string }
+        label: { type: string }
+        value:
+          description: Сырое значение метрики
+          nullable: true
+          oneOf:
+            - { type: number }
+            - { type: string }
+            - { type: boolean }
+            - { type: array, items: { type: string } }
+        display: { type: string, description: Готовая строка для показа }
+        status: { $ref: '#/components/schemas/DataStatus' }
+        hint: { type: string, nullable: true }
+        source:
+          type: string
+          nullable: true
+          enum: [git_clone, platform_api, platform_cli, appsec_api]
+
+    CategoryScore:
+      type: object
+      required: [key, title, score, status, weight, effective_weight, signal_coverage, summary, metrics]
+      properties:
+        key: { $ref: '#/components/schemas/CategoryKey' }
+        title: { type: string }
+        score: { type: number, nullable: true, minimum: 0, maximum: 100 }
+        status: { $ref: '#/components/schemas/DataStatus' }
+        weight: { type: number, minimum: 0, maximum: 1 }
+        effective_weight: { type: number, minimum: 0, maximum: 1 }
+        signal_coverage: { type: number, minimum: 0, maximum: 1 }
+        summary: { type: string }
+        strengths: { type: array, items: { type: string } }
+        weaknesses: { type: array, items: { type: string } }
+        no_data_reason: { type: string, nullable: true }
+        metrics: { type: array, items: { $ref: '#/components/schemas/Metric' } }
+
+    Recommendation:
+      type: object
+      required: [id, category, priority, title, problem, why, action, evidence, expected_gain]
+      properties:
+        id: { type: string }
+        category: { $ref: '#/components/schemas/CategoryKey' }
+        priority: { type: string, enum: [critical, high, medium, low, info] }
+        title: { type: string }
+        problem: { type: string }
+        why: { type: string }
+        action: { type: string }
+        evidence:
+          type: array
+          items:
+            type: object
+            properties:
+              label: { type: string }
+              value: { type: string }
+              url: { type: string, nullable: true }
+        expected_gain:
+          type: number
+          description: Ожидаемый прирост итогового Score в баллах, 0 — не влияет напрямую
+
+    RepoSummary:
+      type: object
+      required: [id, full_path, owner, name, url, total_score, grade, coverage, categories]
+      properties:
+        id: { type: string }
+        full_path: { type: string }
+        owner: { type: string }
+        name: { type: string }
+        url: { type: string, format: uri }
+        description: { type: string, nullable: true }
+        primary_language: { type: string, nullable: true }
+        likes: { type: number }
+        last_activity_at: { type: string, format: date-time, nullable: true }
+        analyzed_at: { type: string, format: date-time }
+        total_score: { type: number, nullable: true }
+        grade: { type: string, example: C }
+        coverage: { type: number, minimum: 0, maximum: 1 }
+        categories:
+          type: object
+          additionalProperties: { type: number, nullable: true }
+        no_data_categories:
+          type: array
+          items: { $ref: '#/components/schemas/CategoryKey' }
+        not_applicable_categories:
+          type: array
+          items: { $ref: '#/components/schemas/CategoryKey' }
+        has_ci: { type: boolean }
+        security_status: { $ref: '#/components/schemas/DataStatus' }
+        rank: { type: integer, nullable: true }
+        rank_delta: { type: integer, nullable: true }
+
+    OwnedRepo:
+      allOf:
+        - $ref: '#/components/schemas/RepoSummary'
+        - type: object
+          properties:
+            role: { type: string, example: maintainer }
+            visibility: { type: string, enum: [public, private] }
+            last_analysis_at: { type: string, format: date-time, nullable: true }
+
+    RepoReport:
+      allOf:
+        - $ref: '#/components/schemas/RepoSummary'
+        - type: object
+          required: [score, categories, recommendations, collection]
+          properties:
+            visibility: { type: string }
+            default_branch: { type: string, nullable: true }
+            likes_percentile: { type: number, nullable: true }
+            summary: { type: string }
+            score:
+              type: object
+              properties:
+                total: { type: number, nullable: true }
+                grade: { type: string }
+                coverage: { type: number }
+                formula_version: { type: string }
+                weights:
+                  type: object
+                  additionalProperties: { type: number }
+            categories:
+              type: array
+              items: { $ref: '#/components/schemas/CategoryScore' }
+            recommendations:
+              type: array
+              items: { $ref: '#/components/schemas/Recommendation' }
+            strengths: { $ref: '#/components/schemas/Highlights' }
+            risks: { $ref: '#/components/schemas/Highlights' }
+            collection:
+              type: object
+              properties:
+                collected_at: { type: string, format: date-time }
+                duration_ms: { type: number, nullable: true }
+                collector_version: { type: string, nullable: true }
+                sources_used:
+                  type: object
+                  additionalProperties: { type: boolean, nullable: true }
+                errors:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      category: { type: string, nullable: true }
+                      source: { type: string, nullable: true }
+                      code: { type: string, nullable: true }
+                      message: { type: string }
+            history:
+              type: array
+              items:
+                type: object
+                properties:
+                  analyzed_at: { type: string, format: date-time }
+                  total: { type: number, nullable: true }
+
+    Highlights:
+      type: array
+      items:
+        type: object
+        properties:
+          category: { $ref: '#/components/schemas/CategoryKey' }
+          text: { type: string }
+
+    PlatformStats:
+      type: object
+      properties:
+        repos_total: { type: integer }
+        repos_scored: { type: integer }
+        median_score: { type: number, nullable: true }
+        no_data_security: { type: integer }
+        with_ci: { type: integer }
+        last_run_at: { type: string, format: date-time }
+        next_run_at: { type: string, format: date-time }
+        schedule: { type: string, example: '0 3 * * *' }
+
+    User:
+      type: object
+      properties:
+        id: { type: string }
+        login: { type: string }
+        display_name: { type: string }
+        email: { type: string, nullable: true }
+        avatar_url: { type: string, nullable: true }
+        provider: { type: string, example: yandex_id }
+
+    Analysis:
+      type: object
+      required: [id, repo_full_path, status, progress, stages, started_at]
+      properties:
+        id: { type: string }
+        repo_full_path: { type: string }
+        status: { type: string, enum: [queued, running, succeeded, failed] }
+        progress: { type: integer, minimum: 0, maximum: 100 }
+        stages:
+          type: array
+          items:
+            type: object
+            properties:
+              key: { type: string }
+              title: { type: string }
+              status: { type: string, enum: [pending, running, done, skipped, failed] }
+              detail: { type: string, nullable: true }
+        started_at: { type: string, format: date-time }
+        finished_at: { type: string, format: date-time, nullable: true }
+        error: { type: string, nullable: true }
+        report:
+          nullable: true
+          allOf: [{ $ref: '#/components/schemas/RepoReport' }]

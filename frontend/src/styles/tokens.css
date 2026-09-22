@@ -1,0 +1,140 @@
+/*
+ * Палитра повторяет интерфейс SourceCraft: нейтральные серые поверхности,
+ * тонкие светлые границы вместо теней, фирменный красный только как акцент.
+ * Значения сняты пипеткой со скриншота дашборда sourcecraft.dev.
+ */
+:root {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-pill: 999px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  --shadow-sm: none;
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.45);
+
+  --rail-w: 56px;
+  --sidebar-w: 252px;
+  --maxw: 1320px;
+}
+
+/* ───────────────────────── тёмная тема — как в SourceCraft ───────────────── */
+:root,
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #343434;
+  --bg-grad: none;
+  --rail: #3e3e3e;
+  --surface: #343434;
+  --surface-2: #3e3e3e;
+  --surface-3: #494949;
+  --surface-4: #525252;
+  --border: #4a4a4a;
+  --border-strong: #5e5e5e;
+
+  --text: #e0e0e0;
+  --text-muted: #b6b6b6;
+  --text-subtle: #8d8d8d;
+
+  --accent: #eb483f;
+  --accent-hover: #f4645a;
+  --accent-soft: #4a302e;
+  --accent-text: #ffffff;
+
+  --good: #6ad247;
+  --good-soft: #2b3b26;
+  --warn: #e8a33c;
+  --warn-soft: #413424;
+  --bad: #e5544a;
+  --bad-soft: #432c2a;
+  --nodata: #9a9a9a;
+  --nodata-soft: #3e3e3e;
+  --info: #6aa9e9;
+  --info-soft: #2a3846;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) {
+    color-scheme: light;
+
+    --bg: #f5f5f6;
+    --rail: #ebebec;
+    --surface: #ffffff;
+    --surface-2: #f7f7f8;
+    --surface-3: #eeeef0;
+    --surface-4: #e4e4e7;
+    --border: #dcdce0;
+    --border-strong: #c3c3c9;
+
+    --text: #1c1c1e;
+    --text-muted: #55555c;
+    --text-subtle: #7c7c85;
+
+    --accent: #d23a31;
+    --accent-hover: #b92f27;
+    --accent-soft: #fdecea;
+    --accent-text: #ffffff;
+
+    --good: #1e7f3c;
+    --good-soft: #e6f5e9;
+    --warn: #9a6400;
+    --warn-soft: #fbf1df;
+    --bad: #c5352b;
+    --bad-soft: #fceceb;
+    --nodata: #6b6b73;
+    --nodata-soft: #eeeef0;
+    --info: #1f5fbf;
+    --info-soft: #e9f0fd;
+
+    --shadow-md: 0 8px 24px rgba(20, 20, 30, 0.10);
+    --shadow-lg: 0 18px 44px rgba(20, 20, 30, 0.16);
+  }
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --bg: #f5f5f6;
+  --rail: #ebebec;
+  --surface: #ffffff;
+  --surface-2: #f7f7f8;
+  --surface-3: #eeeef0;
+  --surface-4: #e4e4e7;
+  --border: #dcdce0;
+  --border-strong: #c3c3c9;
+
+  --text: #1c1c1e;
+  --text-muted: #55555c;
+  --text-subtle: #7c7c85;
+
+  --accent: #d23a31;
+  --accent-hover: #b92f27;
+  --accent-soft: #fdecea;
+  --accent-text: #ffffff;
+
+  --good: #1e7f3c;
+  --good-soft: #e6f5e9;
+  --warn: #9a6400;
+  --warn-soft: #fbf1df;
+  --bad: #c5352b;
+  --bad-soft: #fceceb;
+  --nodata: #6b6b73;
+  --nodata-soft: #eeeef0;
+  --info: #1f5fbf;
+  --info-soft: #e9f0fd;
+
+  --shadow-md: 0 8px 24px rgba(20, 20, 30, 0.10);
+  --shadow-lg: 0 18px 44px rgba(20, 20, 30, 0.16);
+}
