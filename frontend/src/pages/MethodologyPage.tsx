@@ -2,12 +2,21 @@ import { Card } from '@/components/ui';
 import { CATEGORY_HINT, CATEGORY_ORDER, CATEGORY_TITLE } from '@/lib/score';
 
 const WEIGHTS: Record<string, string> = {
+<<<<<<< HEAD
   security: '19.8%',
   code_health: '29.8%',
   activity: '10.8%',
   documentation: '10.0%',
   cicd: '10.2%',
   issues: '19.1%',
+=======
+  security: '20%',
+  code_health: '20%',
+  activity: '15%',
+  documentation: '15%',
+  cicd: '15%',
+  issues: '15%',
+>>>>>>> 197896f15e8c66117be3d924797e57509bb337fe
 };
 
 export function MethodologyPage() {
