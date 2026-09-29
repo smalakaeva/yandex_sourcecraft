@@ -55,6 +55,16 @@ if ! grep -q "^SECRET_KEY=.\+" .env || grep -q "^SECRET_KEY=dev-secret-change-me
   say "Сгенерирован SECRET_KEY"
 fi
 
+# Ключ модели для ИИ-сводки не коммитится (.env в .gitignore), поэтому у каждого он свой.
+# Нет ключа — сервис работает целиком, но сводку и рекомендации пишет движок правил.
+if ! $MOCK; then
+  grep -q "^GROQ_API_KEY=" .env || \
+    printf '\n# Ключ Groq (console.groq.com) для сводки и рекомендаций ИИ\nGROQ_API_KEY=\n' >> .env
+  if [ -z "${GROQ_API_KEY:-}" ] && ! grep -q "^GROQ_API_KEY=.\+" .env; then
+    say "GROQ_API_KEY не задан: сводку ИИ не увидите, впишите ключ в .env и перезапустите"
+  fi
+fi
+
 if $MOCK; then
   printf 'VITE_DATA_SOURCE=mock\nVITE_AUTH_SOURCE=mock\n' > frontend/.env
   say "Режим снимка данных: бэкенд не нужен"
