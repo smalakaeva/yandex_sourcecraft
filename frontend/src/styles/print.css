@@ -45,7 +45,7 @@
   .page { padding: 0 !important; }
   .container { max-width: none !important; padding: 0 !important; }
 
-  .card, .rec, .metric, .category-card, .table-wrap {
+  .card, .rec, .metric, .category-card, .table-wrap, .ai-summary {
     border: 1px solid #d6d6de !important;
     box-shadow: none !important;
     background: #fff !important;

@@ -101,4 +101,10 @@ COLLECTOR_COMMAND = os.getenv("COLLECTOR_COMMAND", "")
 COLLECTOR_TIMEOUT = int(os.getenv("COLLECTOR_TIMEOUT", "900"))
 ANALYSIS_WORKERS = int(os.getenv("ANALYSIS_WORKERS", "2"))
 
+# ──────────────────────────── ИИ-сводка и рекомендации ───────────
+# Ключ Groq (console.groq.com). Пустой — кнопка вернёт базовые рекомендации
+# с model: null, и в шапке отчёта останется шаблонная сводка.
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
+
 API_PREFIX = "/api/v1"

@@ -38,6 +38,27 @@ function fileNameFor(fullPath: string) {
   return `${fullPath.replace('/', '__')}.json`;
 }
 
+/**
+ * Сводка для демо-режима: такая же по структуре, как просят у модели (2–3 предложения
+ * о состоянии проекта), но собрана из фактов отчёта — ничего не выдумывается.
+ */
+function demoSummary(report: RepoReport): string {
+  const strength = report.strengths[0]?.text;
+  const risk = report.risks[0]?.text;
+  const first = report.recommendations.find((r) => r.priority !== 'info');
+  const total = report.score.total;
+  return [
+    total === null
+      ? 'Оценка не посчитана: собранных данных не хватило ни по одной категории.'
+      : `Проект набрал ${Math.round(total)} из 100 (оценка ${report.score.grade}) по ${Math.round(report.score.coverage * 100)}% веса методики.`,
+    strength ? `В плюс идёт: ${strength.toLowerCase()}.` : null,
+    risk ? `Оценку тянет вниз: ${risk.toLowerCase()}.` : null,
+    first ? `Начать стоит с «${first.title}».` : null,
+  ]
+    .filter(Boolean)
+    .join(' ');
+}
+
 export const mockApi = {
   async getRating(q: RatingQuery): Promise<Paged<RepoSummary>> {
     await sleep(120);
@@ -86,12 +107,14 @@ export const mockApi = {
 
   /**
    * В снимке модели нет: после паузы, как у настоящей генерации, возвращаются
-   * базовые рекомендации. model: null — интерфейс честно пишет, что ИИ не вызывался.
+   * базовые рекомендации и сводка, собранная из фактов отчёта: блок сводки
+   * виден и без ключа к модели. model: null — интерфейс честно пишет, что ИИ не вызывался.
    */
   async generateAiRecommendations(fullPath: string): Promise<AiRecommendations> {
     await sleep(1800);
     const report = await loadJson<RepoReport>(`reports/${fileNameFor(fullPath)}`);
     return {
+      summary: demoSummary(report),
       recommendations: report.recommendations.map((r) => ({ ...r, id: `ai-${r.id}` })),
       model: null,
       generated_at: new Date().toISOString(),

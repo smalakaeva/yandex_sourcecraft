@@ -32,6 +32,7 @@ export function ReportView({ report, actions }: { report: RepoReport; actions?: 
   const aiError = aiForThis && ai.isError ? aiErrorMessage(ai.error) : null;
 
   const recommendations = aiResult?.recommendations ?? report.recommendations;
+  const aiSummary = aiResult?.summary?.trim() || null;
   const topRecs = recommendations.filter((r) => r.priority !== 'info').slice(0, 3);
 
   return (
@@ -69,7 +70,19 @@ export function ReportView({ report, actions }: { report: RepoReport; actions?: 
           <ScoreGauge score={report.score.total} grade={report.score.grade} coverage={report.score.coverage} />
 
           <div className="stack">
-            <p style={{ fontSize: 16 }}>{report.summary}</p>
+            {aiSummary ? (
+              <div className="ai-summary">
+                <span className="ai-summary__label">✦ Сводка ИИ</span>
+                <p className="ai-summary__text">{aiSummary}</p>
+                <span className="text-subtle">
+                  {aiResult?.model
+                    ? `модель ${aiResult.model} · ${formatDateTime(aiResult.generated_at)}`
+                    : 'демо-режим: модель не вызывалась, текст собран из фактов отчёта'}
+                </span>
+              </div>
+            ) : (
+              <p style={{ fontSize: 16 }}>{report.summary}</p>
+            )}
 
             <div className="grid-2">
               <div className="stack-sm">

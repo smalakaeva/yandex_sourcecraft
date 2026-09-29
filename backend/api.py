@@ -104,9 +104,11 @@ async def generate_ai_recommendations(owner: str, name: str, current=Depends(aut
     # Прогоняем факты через ИИ
     ai_response = await generate_ai_recommendations_list(owner, name, base_recs)
 
-    # Достаем сгенерированные данные
-    ai_summary_text = ai_response.get("summary", "")
-    ai_recs_raw = ai_response.get("recommendations", base_recs)
+    # Достаем сгенерированные данные. model=None — модель не вызывалась
+    # (нет ключа или ошибка), тогда сводка пустая и в шапке остаётся шаблонный текст.
+    ai_summary_text = str(ai_response.get("summary") or "").strip()
+    ai_recs_raw = ai_response.get("recommendations") or base_recs
+    ai_model = ai_response.get("model")
 
     CATEGORY_MAP = {
         "Security": "security", "CI/CD": "cicd", "Documentation": "documentation",
@@ -150,7 +152,7 @@ async def generate_ai_recommendations(owner: str, name: str, current=Depends(aut
     return {
         "summary": ai_summary_text,
         "recommendations": formatted_recs,
-        "model": "llama-3.1-8b-instant",
+        "model": ai_model,
         "generated_at": datetime.now(timezone.utc).isoformat()
     }
 

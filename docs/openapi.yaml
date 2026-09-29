@@ -89,7 +89,7 @@ paths:
   /repos/{owner}/{name}/recommendations/ai:
     post:
       tags: [rating]
-      summary: Рекомендации, сформулированные ИИ по фактам отчёта (пока не реализовано)
+      summary: Рекомендации и сводка, сформулированные ИИ по фактам отчёта
       parameters:
         - { in: path, name: owner, required: true, schema: { type: string } }
         - { in: path, name: name, required: true, schema: { type: string } }
@@ -102,10 +102,17 @@ paths:
                 type: object
                 required: [recommendations, model, generated_at]
                 properties:
+                  summary:
+                    type: string
+                    description: Сводка ИИ вместо шаблонной в шапке отчёта; пустая строка — оставить шаблонную
                   recommendations:
                     type: array
                     items: { $ref: '#/components/schemas/Recommendation' }
-                  model: { type: string, nullable: true, example: yandexgpt-lite }
+                  model:
+                    type: string
+                    nullable: true
+                    example: llama-3.1-8b-instant
+                    description: Модель, написавшая текст; null — модель не вызывалась, отданы базовые рекомендации
                   generated_at: { type: string, format: date-time }
         '404': { $ref: '#/components/responses/Error' }
         '503': { $ref: '#/components/responses/Error' }

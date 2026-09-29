@@ -230,6 +230,8 @@ export interface Analysis {
 
 /** Рекомендации, переписанные ИИ по фактам отчёта. Формат тот же, что у базовых. */
 export interface AiRecommendations {
+  /** Сводка ИИ вместо шаблонной в шапке отчёта; пустая строка — оставить шаблонную */
+  summary?: string;
   recommendations: Recommendation[];
   /** Модель, которая сформировала ответ; null — модель не вызывалась (демо-режим) */
   model: string | null;

@@ -22,6 +22,9 @@ services:
       YANDEX_CLIENT_ID: ${YANDEX_CLIENT_ID:-}
       YANDEX_CLIENT_SECRET: ${YANDEX_CLIENT_SECRET:-}
       REPO_HEALTH_SCHEDULE: ${REPO_HEALTH_SCHEDULE:-0 3 * * *}
+      # Ключ Groq для сводки и рекомендаций ИИ. Не задан — кнопка вернёт базовые
+      # рекомендации, а в шапке отчёта останется шаблонная сводка.
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
     volumes:
       # Выгрузка сборщика: обновляется снаружи, сервис перечитывает по расписанию
       - ./repo_health_report.csv:/data/repo_health_report.csv:ro
